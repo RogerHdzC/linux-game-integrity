@@ -1,0 +1,47 @@
+# Test plan
+
+## Executed in the first iteration
+
+| Test area | Cases and expected outcome | Observed result |
+|---|---|---|
+| Rust unit tests | os-release quotes, precedence within file, missing version, malformed input and no shell expansion; SecureBoot framing/boolean; module parsing and address omission; Lockdown active mode; read-size boundary | 6 passed |
+| Rust integration tests | Synthetic capabilities remain unverified; absent/denied interfaces; fallback only on missing os-release; corrupt/oversized input; empty lists; WSL hint; multiple TPM versions and invalid names; CLI rejects options and emits live JSON | 10 passed |
+| Contract tests | Labeled synthetic fixture and live binary match schema; acceptance/verified flags, extra fields, wrong/missing types, inconsistent observations, excessive sizes, duplicate keys and invalid JSON fail | 9 passed |
+| Dependency-audit tests | Empty findings, advisory reporting, incomplete/paginated/error responses and both ecosystems | 4 passed |
+| Live inventory | Ordinary-user WSL execution produces JSON; missing hardware remains unknown; result INDETERMINATE | Passed; see COMPATIBILITY |
+| Secret scan | Gitleaks 8.24.2 on all 35 files prepared for publication | No leaks found |
+| Formatting / static analysis / build | rustfmt, Clippy with warnings denied, locked Cargo build | Passed |
+| Dependency audit | Query all 16 locked external Rust/Python versions; fail if advisories or unavailable/incomplete response | No known advisories returned by the executed OSV query |
+
+See README for exact commands. Rust tests live in `apps/agent/src/lib.rs` and
+`apps/agent/tests/inventory.rs`; Python tests live in `tests/contracts/`.
+`tests/fixtures/` is exclusively synthetic. `reports/inventory-wsl.json` is local
+live output excluded from publication. GitHub Actions runs quality checks and
+Gitleaks independently; a local test pass is not a claim that remote CI ran.
+
+The read-only claim is supported by source review and ordinary-user operation:
+no write APIs, subprocesses, network calls, mount changes or TPM commands in the
+agent. A syscall trace or independently reviewed sandbox profile has not been
+produced, and hostile-kernel behavior is not tested.
+
+## Future protocol and hardware gates — not executed
+
+| Scenario | Required future result |
+|---|---|
+| Real valid evidence meeting an experimental policy | ACCEPTED only after all independent checks |
+| Invalid signature, wrong nonce, replayed nonce | REJECTED |
+| Expired nonce or concurrent duplicate submission | REJECTED with atomic single consumption |
+| Measurements inconsistent with signed PCR digest | REJECTED |
+| Incomplete evidence | INDETERMINATE |
+| TPM unavailable | INDETERMINATE or REJECTED under explicit policy |
+| Unsupported/revoked kernel | REJECTED or explicit review |
+| Verification error or unavailable dependency | Never ACCEPTED |
+| Legitimate update | Evaluate against the authorized updated policy |
+| Oversized/malformed request, unauthorized endpoint access | Reject without expensive verification or data leakage |
+| Migration failure or persistence outage | No acceptance; maintain state consistency |
+| Audit records | No secrets or unnecessary permanent identifiers |
+
+These require a designed protocol, server and, for hardware claims, the native
+lab. No synthetic cryptographic fixture has been presented as a real quote.
+Latency/resource benchmarks, physical TPM/IMA validation, Fedora testing and
+independent security review remain pending.

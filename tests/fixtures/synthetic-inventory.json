@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "kind": "linux-inventory",
+  "origin": "synthetic",
+  "trust": "os-declared-unverified",
+  "agentVersion": "synthetic",
+  "platform": {
+    "distribution": {
+      "status": "unavailable",
+      "source": "/synthetic/unavailable",
+      "value": null,
+      "error": "not_found"
+    },
+    "kernelRelease": {
+      "status": "observed",
+      "source": "/proc/sys/kernel/osrelease",
+      "value": "6.8-synthetic",
+      "error": null
+    },
+    "environmentHint": "unknown",
+    "secureBoot": {
+      "status": "unavailable",
+      "source": "/synthetic/unavailable",
+      "value": null,
+      "error": "not_found"
+    },
+    "tpm": {
+      "classDevices": {
+        "status": "unavailable",
+        "source": "/synthetic/unavailable",
+        "value": null,
+        "error": "not_found"
+      },
+      "majorVersions": [],
+      "deviceNodes": [],
+      "commandAccess": "not-tested"
+    },
+    "loadedModules": {
+      "status": "observed",
+      "source": "/proc/modules",
+      "value": [],
+      "error": null
+    },
+    "moduleSignatureEnforcement": {
+      "status": "unavailable",
+      "source": "/synthetic/unavailable",
+      "value": null,
+      "error": "not_found"
+    },
+    "modulesDisabled": {
+      "status": "unavailable",
+      "source": "/synthetic/unavailable",
+      "value": null,
+      "error": "not_found"
+    },
+    "lockdown": {
+      "status": "unavailable",
+      "source": "/synthetic/unavailable",
+      "value": null,
+      "error": "not_found"
+    },
+    "kernelTaint": {
+      "status": "unavailable",
+      "source": "/synthetic/unavailable",
+      "value": null,
+      "error": "not_found"
+    },
+    "measurementInterfaces": []
+  },
+  "evidence": {
+    "measurementsCollected": false,
+    "quotePresent": false,
+    "cryptographicallyBacked": false,
+    "serverVerified": false
+  },
+  "result": "INDETERMINATE",
+  "limitations": [
+    "SYNTHETIC FIXTURE: not collected from real hardware."
+  ]
+}

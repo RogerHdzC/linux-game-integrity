@@ -1,0 +1,23 @@
+{
+  "fixtureKind": "synthetic",
+  "files": {
+    "/etc/os-release": "ID=ubuntu\nVERSION_ID=\"24.04\"\n",
+    "/proc/sys/kernel/osrelease": "6.8.0-synthetic\n",
+    "/proc/modules": "synthetic_module 16384 0 - Live 0x0000000000000000\n",
+    "/sys/class/tpm/tpm0/tpm_version_major": "2\n",
+    "/sys/module/module/parameters/sig_enforce": "Y\n",
+    "/proc/sys/kernel/modules_disabled": "0\n",
+    "/sys/kernel/security/lockdown": "none [integrity] confidentiality\n",
+    "/proc/sys/kernel/tainted": "0\n",
+    "/sys/kernel/security/ima/ascii_runtime_measurements": "SYNTHETIC - NOT A VALID IMA LOG\n",
+    "/sys/kernel/security/ima/binary_runtime_measurements": "SYNTHETIC",
+    "/sys/kernel/security/ima/policy": "SYNTHETIC",
+    "/sys/kernel/security/tpm0/binary_bios_measurements": "SYNTHETIC"
+  },
+  "binaryFiles": {
+    "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c": [7, 0, 0, 0, 1]
+  },
+  "directories": {"/sys/class/tpm": ["tpm0"]},
+  "nodes": ["/dev/tpm0", "/dev/tpmrm0"],
+  "denied": []
+}

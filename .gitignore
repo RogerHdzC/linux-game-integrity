@@ -1,0 +1,11 @@
+/target/
+/reports/
+/.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+/.agents/
+/.aws/
+/.codex/
