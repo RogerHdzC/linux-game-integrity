@@ -55,3 +55,38 @@ test("duplicate decoded keys and excessive nesting are rejected", () => {
     x: [{ a: 1 }, { a: 2 }],
   });
 });
+
+test("policy rejects incomplete, inherited or malformed synthetic trust claims", () => {
+  const complete = Object.fromEntries(
+    [
+      "keyProvenance",
+      "signature",
+      "freshness",
+      "pcrBinding",
+      "measurements",
+      "policy",
+    ].map((key) => [key, "VERIFIED"]),
+  );
+  for (const value of [
+    null,
+    undefined,
+    [],
+    "VERIFIED",
+    {},
+    { signature: "VERIFIED" },
+    Object.create(complete),
+    { ...complete, result: "ACCEPTED" },
+  ])
+    expect(decide(value)).toBe("INDETERMINATE");
+  for (const key of Object.keys(complete)) {
+    const missing = { ...complete };
+    delete missing[key];
+    expect(decide(missing)).toBe("INDETERMINATE");
+    for (const value of [true, null, "UNKNOWN", "NOT_CHECKED"])
+      expect(decide({ ...complete, [key]: value })).toBe("INDETERMINATE");
+  }
+  expect(decide({ signature: "FAILED" })).toBe("REJECTED");
+  const { POLICY } = require("../../../dist/packages/policy-engine");
+  expect(Object.isFrozen(POLICY.pcrs)).toBe(true);
+  expect(() => POLICY.pcrs.push(11)).toThrow();
+});

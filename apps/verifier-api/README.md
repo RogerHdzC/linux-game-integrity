@@ -101,7 +101,9 @@ There is **no production acceptance path**: key provenance, measurement coverage
 and the trusted baseline remain unavailable. A valid quote therefore returns
 INDETERMINATE. PCR digest binding is distinct from IMA/boot-log replay and policy
 coverage, which are not implemented. The pure policy engine's ACCEPTED case is
-covered only by explicitly synthetic unit tests with all checks marked verified.
+covered only by explicitly synthetic unit tests with all six mandatory checks marked
+verified. Missing, inherited, extra or malformed checks cannot enable acceptance;
+an explicit mandatory failure produces REJECTED. The PCR selection is immutable.
 
 ## Privacy and retention
 
