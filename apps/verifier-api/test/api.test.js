@@ -5,7 +5,8 @@ const { createApp } = require("../../../dist/apps/verifier-api/src/main");
 const { migrate } = require("../../../dist/apps/verifier-api/src/migrate");
 const { synthetic, publicKey } = require("./synthetic");
 // This suite REQUIRES a disposable PostgreSQL database: it never silently skips.
-let pool, app, service, enrollment;
+let pool, app, service, enrollment, bootstrap;
+const schema = "lgi_test_" + randomBytes(12).toString("hex");
 const client = randomBytes(32).toString("hex"),
   admin = randomBytes(32).toString("hex");
 const post = (path, body, token = client) =>
@@ -18,9 +19,12 @@ beforeAll(async () => {
     throw new Error(
       "LGI_TEST_DATABASE_URL must name an isolated test database",
     );
+  bootstrap = new Pool({ connectionString: process.env.LGI_TEST_DATABASE_URL });
+  await bootstrap.query(`CREATE SCHEMA ${schema}`);
   pool = new Pool({
     connectionString: process.env.LGI_TEST_DATABASE_URL,
     max: 5,
+    options: `-c search_path=${schema}`,
   });
   await migrate(pool);
   await migrate(pool);
@@ -32,6 +36,10 @@ beforeAll(async () => {
 afterAll(async () => {
   if (app) await app.close();
   if (pool) await pool.end();
+  if (bootstrap) {
+    await bootstrap.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
+    await bootstrap.end();
+  }
 });
 async function challenge() {
   const r = await post("challenges", { enrollmentId: enrollment });
@@ -286,4 +294,129 @@ test("HTTP v1 response contracts are server-generated and distinct from drafts",
     policyVersion: c.policyVersion,
     result: "INDETERMINATE",
   });
+});
+
+test("startup requires the migration row and releases its pool on failure", async () => {
+  const { startVerifier } = require("../../../dist/apps/verifier-api/src/main");
+  await pool.query("DELETE FROM lgi_migrations WHERE version=1");
+  const startupPool = new Pool({
+    connectionString: process.env.LGI_TEST_DATABASE_URL,
+    options: `-c search_path=${schema}`,
+  });
+  const end = jest.spyOn(startupPool, "end");
+  try {
+    await expect(startVerifier(startupPool, client, admin, 0)).rejects.toThrow(
+      "MIGRATION_REQUIRED",
+    );
+    expect(end).toHaveBeenCalledTimes(1);
+  } finally {
+    await migrate(pool);
+  }
+  const failed = {
+    query: async () => {
+      throw new Error("synthetic startup outage");
+    },
+    end: jest.fn(async () => {}),
+  };
+  await expect(startVerifier(failed, client, admin, 0)).rejects.toThrow(
+    "synthetic startup outage",
+  );
+  expect(failed.end).toHaveBeenCalledTimes(1);
+  const cleanupFailure = {
+    query: async () => ({ rowCount: 1 }),
+    connect: async () => {
+      throw new Error("synthetic retention outage");
+    },
+    end: jest.fn(async () => {}),
+  };
+  await expect(startVerifier(cleanupFailure, client, admin, 0)).rejects.toThrow(
+    "synthetic retention outage",
+  );
+  expect(cleanupFailure.end).toHaveBeenCalledTimes(1);
+});
+test("startup and shutdown release the listener and database pool", async () => {
+  const { startVerifier } = require("../../../dist/apps/verifier-api/src/main");
+  const startupPool = new Pool({
+    connectionString: process.env.LGI_TEST_DATABASE_URL,
+    options: `-c search_path=${schema}`,
+  });
+  const running = await startVerifier(startupPool, client, admin, 0);
+  expect(running.app.getHttpServer().listening).toBe(true);
+  await running.close();
+  expect(running.app.getHttpServer().listening).toBe(false);
+  expect(startupPool.ended).toBe(true);
+});
+test("revocation committed while final verification waits is observed", async () => {
+  const { Verifier } = require("../../../dist/apps/verifier-api/src/service");
+  const e = await post("enrollments", { publicKey }, admin);
+  const c = (await post("challenges", { enrollmentId: e.body.enrollmentId }))
+    .body;
+  const locker = await pool.connect();
+  let attempted;
+  const waiting = new Promise((resolve) => {
+    attempted = resolve;
+  });
+  const verifier = new Verifier({
+    query: pool.query.bind(pool),
+    connect: async () => {
+      const connection = await pool.connect();
+      return {
+        release: () => connection.release(),
+        query: (sql, ...args) => {
+          if (sql.includes("FOR UPDATE")) attempted();
+          return connection.query(sql, ...args);
+        },
+      };
+    },
+  });
+  try {
+    await locker.query("BEGIN");
+    await locker.query(
+      "SELECT id FROM lgi_enrollments WHERE id=$1 FOR UPDATE",
+      [e.body.enrollmentId],
+    );
+    const evaluation = verifier.evaluate(submission(c));
+    await waiting;
+    await locker.query(
+      "UPDATE lgi_enrollments SET revoked_at=now() WHERE id=$1",
+      [e.body.enrollmentId],
+    );
+    await locker.query("COMMIT");
+    const result = await evaluation;
+    expect(result.result).toBe("REJECTED");
+    expect(result.checks.keyProvenance).toBe("FAILED");
+    expect(result.reasons).toContain("ENROLLMENT_REVOKED");
+  } finally {
+    await locker.query("ROLLBACK");
+    locker.release();
+  }
+});
+test("malformed UTF-8 cannot be silently replaced in registered key input", async () => {
+  const bytes = Buffer.concat([
+    Buffer.from(JSON.stringify({ publicKey }).slice(0, -2)),
+    Buffer.from([0xff]),
+    Buffer.from('"}'),
+  ]);
+  const r = await request(app.getHttpServer())
+    .post("/v1/enrollments")
+    .set("Authorization", "Bearer " + admin)
+    .set("Content-Type", "application/json")
+    .serialize(() => bytes)
+    .send({});
+  expect(r.status).toBe(400);
+  expect(r.body.error).toBe("INVALID_JSON");
+});
+test("concurrent issuance cannot exceed the single-client rate limit", async () => {
+  await app.listen(0, "127.0.0.1");
+  // Only this suite's randomly named schema is modified.
+  await pool.query(
+    "UPDATE lgi_challenges SET created_at=now()-interval '2 minutes'",
+  );
+  const results = await Promise.all(
+    Array.from({ length: 61 }, () =>
+      post("challenges", { enrollmentId: enrollment }),
+    ),
+  );
+  expect(results.filter((r) => r.status === 201)).toHaveLength(60);
+  expect(results.filter((r) => r.status === 429)).toHaveLength(1);
 });

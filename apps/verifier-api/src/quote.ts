@@ -38,12 +38,31 @@ export interface QuoteChecks {
   nonce: boolean;
   pcrBinding: boolean;
 }
+function decodedHex(value: string, max: number, exact?: number): Buffer {
+  if (
+    typeof value !== "string" ||
+    value.length > max ||
+    (exact !== undefined && value.length !== exact) ||
+    !/^(?:[0-9a-f]{2})+(?![\s\S])/.test(value)
+  )
+    throw new Error("INVALID_HEX");
+  return Buffer.from(value, "hex");
+}
 export function checkQuote(
   input: QuoteInput,
   pem: string,
   nonce: string,
 ): QuoteChecks {
-  const message = Buffer.from(input.attest, "hex");
+  const message = decodedHex(input.attest, 16384);
+  const signatureBytes = decodedHex(input.signature, 16384);
+  const expectedNonce = decodedHex(nonce, 64, 64);
+  if (!Array.isArray(input.pcrs) || input.pcrs.length !== POLICY.pcrs.length)
+    throw new Error("WRONG_PCR_VALUES");
+  for (const pcr of input.pcrs) {
+    if (!pcr || !Number.isInteger(pcr.index))
+      throw new Error("WRONG_PCR_VALUES");
+    decodedHex(pcr.digest, 64, 64);
+  }
   const r = new Reader(message);
   if (r.u32() !== 0xff544347 || r.u16() !== 0x8018)
     throw new Error("NOT_A_TPM_QUOTE");
@@ -65,7 +84,7 @@ export function checkQuote(
   const digest = r.sized();
   r.end();
   if (digest.length !== 32) throw new Error("INVALID_PCR_DIGEST");
-  const s = new Reader(Buffer.from(input.signature, "hex"));
+  const s = new Reader(signatureBytes);
   if (s.u16() !== 0x0014 || s.u16() !== 0x000b)
     throw new Error("UNSUPPORTED_SIGNATURE");
   const signature = s.sized();
@@ -90,7 +109,7 @@ export function checkQuote(
       { key, padding: constants.RSA_PKCS1_PADDING },
       signature,
     ),
-    nonce: extraData.equals(Buffer.from(nonce, "hex")),
+    nonce: extraData.equals(expectedNonce),
     pcrBinding: calculated.equals(digest),
   };
 }

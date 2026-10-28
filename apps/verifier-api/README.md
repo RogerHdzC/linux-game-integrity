@@ -47,6 +47,11 @@ per-device identity and credential rotation without restart are future work.
 schema. Run `LGI_TEST_DATABASE_URL="$DATABASE_URL" npm test` only against a
 disposable test database. Tests create synthetic enrollments/evaluations and modify
 test rows; they require PostgreSQL and fail instead of silently skipping it.
+Each run creates and drops its own randomly named schema, leaving other schemas
+untouched. The test database role needs CREATE SCHEMA permission. Repeating the
+suite does not inherit issuance counters or synthetic records from earlier runs.
+Startup requires migration version 1 to be present, and releases the application
+and database pool when initialization fails.
 
 Stop with Ctrl-C. Stop Compose using `docker compose -f infra/docker-compose.yml
 stop`; the database volume is retained. Removing a volume is a separate data-loss
@@ -94,7 +99,8 @@ for the single client with a database advisory lock. Token possession is the
 current authentication boundary. No client result or trust flag is accepted.
 
 The decoder checks magic/type, lengths, supported algorithms, selection and trailing
-bytes. Node crypto verifies the exact signed bytes. The server compares signed
+bytes. Decoder entry points also reject malformed/oversized hex instead of allowing
+Buffer decoding to truncate it silently. Node crypto verifies the exact signed bytes. The server compares signed
 qualifying data to its stored nonce and hashes supplied PCR values in selection
 order to check the quote's digest. Revocation is checked again under a database
 lock before persisting a result. Invalid signature/nonce/PCR binding rejects.
@@ -132,3 +138,14 @@ never use global flush/TPM clear commands. The private Ansible workflow performs
 that scoped cleanup and compares service-health snapshots around operations.
 
 See [Phase 3 results](../../docs/RESULTS_PHASE_3.md) for executed tests and blockers.
+
+## Consolidation regressions
+
+The synthetic suite exercises every truncation boundary in its TPM structures,
+unsupported algorithms/selections, invalid declared sizes, trailing bytes,
+malformed UTF-8, incomplete policy inputs, and unauthenticated verification claims.
+Real PostgreSQL tests exercise concurrent replay and rate limits, revocation while
+final evaluation waits on a row lock, reservation survival after storage failure,
+transactional migration rollback, and startup/shutdown resource handling.
+These tests establish behavior for the supported profile, not complete parser
+assurance or cryptographic provenance. Independent review remains pending.

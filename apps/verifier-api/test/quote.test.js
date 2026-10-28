@@ -90,3 +90,57 @@ test("policy rejects incomplete, inherited or malformed synthetic trust claims",
   expect(Object.isFrozen(POLICY.pcrs)).toBe(true);
   expect(() => POLICY.pcrs.push(11)).toThrow();
 });
+
+test("every truncated synthetic TPM structure and trailing signature byte fails", () => {
+  const nonce = "ab".repeat(32),
+    q = synthetic(nonce);
+  for (const field of ["attest", "signature"]) {
+    for (let end = 0; end < q[field].length; end += 2)
+      expect(() =>
+        checkQuote({ ...q, [field]: q[field].slice(0, end) }, publicKey, nonce),
+      ).toThrow();
+    for (const value of [
+      q[field] + "00",
+      q[field] + "zz",
+      q[field] + "a",
+      "00".repeat(8193),
+    ])
+      expect(() =>
+        checkQuote({ ...q, [field]: value }, publicKey, nonce),
+      ).toThrow();
+  }
+  expect(() => checkQuote(q, publicKey, nonce + "zz")).toThrow();
+  expect(() =>
+    checkQuote(
+      { ...q, pcrs: q.pcrs.map((p) => ({ ...p, digest: p.digest + "zz" })) },
+      publicKey,
+      nonce,
+    ),
+  ).toThrow();
+});
+test("unsupported synthetic algorithms, selections and declared lengths fail", () => {
+  const nonce = "ab".repeat(32),
+    q = synthetic(nonce);
+  // Offsets below are specific to synthetic.js: empty signer and 32-byte nonce.
+  const mutations = [
+    ["attest", 0, 0],
+    ["attest", 5, 0],
+    ["attest", 6, 255],
+    ["attest", 58, 2],
+    ["attest", 70, 2],
+    ["attest", 72, 4],
+    ["attest", 73, 2],
+    ["attest", 74, 0],
+    ["attest", 77, 255],
+    ["signature", 1, 0x16],
+    ["signature", 3, 4],
+    ["signature", 4, 255],
+  ];
+  for (const [field, offset, value] of mutations) {
+    const bytes = Buffer.from(q[field], "hex");
+    bytes[offset] = value;
+    expect(() =>
+      checkQuote({ ...q, [field]: bytes.toString("hex") }, publicKey, nonce),
+    ).toThrow();
+  }
+});

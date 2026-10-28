@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import {
+  INestApplication,
   Body,
   Controller,
   Post,
@@ -104,7 +105,9 @@ export async function createApp(
       return;
     }
     try {
-      req.body = parseJson(req.body.toString("utf8"));
+      req.body = parseJson(
+        new TextDecoder("utf-8", { fatal: true }).decode(req.body),
+      );
       next();
     } catch {
       res.status(400).json({ error: "INVALID_JSON" });
@@ -126,33 +129,64 @@ export async function createApp(
   await app.init();
   return { app, service };
 }
+export async function startVerifier(
+  pool: Pool,
+  clientToken: string,
+  adminToken: string,
+  port = 3000,
+) {
+  let app: INestApplication | undefined;
+  let timer: ReturnType<typeof setInterval> | undefined;
+  const close = async () => {
+    if (timer) clearInterval(timer);
+    try {
+      await app?.close();
+    } finally {
+      await pool.end();
+    }
+  };
+  try {
+    const migration = await pool.query(
+      "SELECT version FROM lgi_migrations WHERE version=1",
+    );
+    if (migration.rowCount !== 1) throw new Error("MIGRATION_REQUIRED");
+    const created = await createApp(pool, clientToken, adminToken);
+    app = created.app;
+    await created.service.cleanup();
+    await app.listen(port, "127.0.0.1");
+    const server = app.getHttpServer();
+    server.requestTimeout = 15000;
+    server.headersTimeout = 10000;
+    timer = setInterval(() => {
+      created.service
+        .cleanup()
+        .catch(() => console.error("Retention cleanup failed"));
+    }, 3600000);
+    timer.unref();
+    return { app, close };
+  } catch (error) {
+    await close();
+    throw error;
+  }
+}
 async function main(): Promise<void> {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 5,
-    connectionTimeoutMillis: 5000,
-    statement_timeout: 5000,
-  });
-  const { app, service } = await createApp(
-    pool,
+  const running = await startVerifier(
+    new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 5,
+      connectionTimeoutMillis: 5000,
+      statement_timeout: 5000,
+    }),
     process.env.LGI_CLIENT_TOKEN ?? "",
     process.env.LGI_ADMIN_TOKEN ?? "",
   );
-  await pool.query("SELECT version FROM lgi_migrations WHERE version=1");
-  await service.cleanup();
-  const timer = setInterval(() => {
-    service.cleanup().catch(() => console.error("Retention cleanup failed"));
-  }, 3600000);
-  timer.unref();
-  await app.listen(3000, "127.0.0.1");
-  const server = app.getHttpServer();
-  server.requestTimeout = 15000;
-  server.headersTimeout = 10000;
   for (const signal of ["SIGINT", "SIGTERM"])
     process.once(signal, () => {
-      clearInterval(timer);
-      void app.close().then(() => pool.end());
+      void running.close().catch(() => {
+        console.error("Verifier shutdown failed");
+        process.exitCode = 1;
+      });
     });
 }
 if (require.main === module)
