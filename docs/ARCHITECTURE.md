@@ -65,7 +65,7 @@ particular experimental policy, never proof of cheat absence or Vanguard support
 |---|---|---|
 | ADR-001 | Rust for read-only inventory; serde and serde_json only runtime dependencies | Typed output and well-tested JSON escaping without shell commands |
 | ADR-002 | Strict JSON Schema 2020-12; Python jsonschema for tests | Independent contract validation; Python not required by agent |
-| ADR-003 | No verifier, PostgreSQL, Compose or dashboard in this iteration | The user requested Phases 0/1 and a review gate before remote attestation |
+| ADR-003 | No verifier, PostgreSQL, Compose or dashboard in this iteration | Phases 0–2 retain a review gate before remote attestation |
 | ADR-004 | Do not open TPM devices or read complete event logs | Avoid unnecessary privileges/device commands and sensitive log collection |
 | ADR-005 | All inventory is unverified; local result constant | No unsupported trust claims from boolean observations |
 | ADR-006 | GitHub Actions with pinned action commits | Matches the public GitHub repository; no deployment needed |
@@ -73,3 +73,15 @@ particular experimental policy, never proof of cheat absence or Vanguard support
 | ADR-008 | English throughout | Community participation, per the user's updated language preference |
 
 The initial eight-week roadmap is planning, not evidence of completion.
+
+## Phase 2 laboratory boundary
+
+The agent and inventory-v1 remain unchanged. An external laboratory procedure
+deploys a prebuilt, checksummed static musl binary and runs it separately under
+ordinary and explicitly privileged execution. TPM tools run outside the agent.
+Their PCR reads are collected measurements, not signed or verified evidence.
+Infrastructure configuration and raw reports remain private.
+
+Separate draft submission/result schemas and the [enrollment design](ENROLLMENT_DESIGN.md)
+prepare Phase 3. Schema tests exercise shapes and decision consistency, not
+cryptographic verification. No runtime component can issue ACCEPTED.

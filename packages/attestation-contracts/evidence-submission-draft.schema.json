@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rogerhdzc.github.io/linux-game-integrity/contracts/evidence-submission-draft.schema.json",
+  "title": "evidence-submission-draft",
+  "description": "Phase 2 design draft. Schema validation does not verify cryptographic evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "origin",
+    "challengeId",
+    "nonce",
+    "enrollmentId",
+    "quote",
+    "measurements"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1-draft"
+    },
+    "kind": {
+      "const": "evidence-submission"
+    },
+    "origin": {
+      "enum": [
+        "live",
+        "synthetic"
+      ]
+    },
+    "challengeId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "enrollmentId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+    },
+    "quote": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "format",
+            "attest",
+            "signature"
+          ],
+          "properties": {
+            "format": {
+              "const": "tpms-attest-tpmt-signature-hex"
+            },
+            "attest": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16384,
+              "pattern": "^(?:[0-9a-f]{2})+(?![\\s\\S])"
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16384,
+              "pattern": "^(?:[0-9a-f]{2})+(?![\\s\\S])"
+            }
+          }
+        }
+      ]
+    },
+    "measurements": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bank",
+            "pcrs",
+            "bootLog",
+            "imaLog"
+          ],
+          "properties": {
+            "bank": {
+              "const": "sha256"
+            },
+            "pcrs": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 24,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "index",
+                  "digest"
+                ],
+                "properties": {
+                  "index": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 23
+                  },
+                  "digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+                  }
+                }
+              }
+            },
+            "bootLog": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2097152,
+                  "pattern": "^(?:[0-9a-f]{2})+(?![\\s\\S])"
+                }
+              ]
+            },
+            "imaLog": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2097152,
+                  "pattern": "^(?:[0-9a-f]{2})+(?![\\s\\S])"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "0.1-draft",
+  "kind": "evidence-submission",
+  "origin": "synthetic",
+  "challengeId": "synthetic-challenge",
+  "nonce": "0000000000000000000000000000000000000000000000000000000000000000",
+  "enrollmentId": "synthetic-enrollment",
+  "quote": null,
+  "measurements": null
+}

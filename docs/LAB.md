@@ -1,6 +1,6 @@
 # Lab environment
 
-## Keep WSL for this iteration
+## Development environment
 
 WSL2 is sufficient for Rust development, parsers, contracts and negative tests.
 There is no need to migrate the whole project now. The current environment
@@ -48,3 +48,66 @@ EFI variables, IMA policy/logs, Lockdown and TPM interfaces may require permissi
 or may not be mounted. The agent records the failure and continues. Do not mount
 securityfs, alter ACLs, load modules, change Secure Boot, clear a TPM or create keys
 automatically. Lab configuration changes require a separate, explicitly reviewed task.
+
+## Phase 2: native collection procedure
+
+A native Debian 12 laboratory is now tested; WSL remains the build environment.
+Ubuntu/Fedora hardware coverage remains pending. The inventory agent is unchanged.
+Privileged diagnostics are a separately authorized laboratory procedure, not an
+agent feature. Infrastructure-specific automation and raw results remain private.
+
+Build a portable artifact on the development machine, after running the README
+quality checks:
+
+```bash
+rustup target add x86_64-unknown-linux-musl --toolchain 1.84.1
+cargo build --release --locked --target x86_64-unknown-linux-musl
+file target/x86_64-unknown-linux-musl/release/lgi-agent
+readelf -l target/x86_64-unknown-linux-musl/release/lgi-agent
+sha256sum target/x86_64-unknown-linux-musl/release/lgi-agent
+git rev-parse HEAD
+```
+
+The ELF must have no `INTERP` program header. Record the agent source commit,
+Rust version, target and SHA-256 together; a checksum is not a provenance signature.
+Deploy that artifact using narrowly scoped configuration management, verify its
+checksum at the destination and retain a versioned path. Do not install a build
+toolchain on the laboratory server or rebuild during deployment.
+
+On Debian 12 the tested package set is `tpm2-tools=5.4-1`, TSS libraries
+`3.2.1-3` and `tpm-udev=0.6`. Preview the transaction before applying it: install
+only missing dependencies, no broad upgrades or removals. The udev package may
+change device ownership/modes; record those effects. Do not add users to TPM
+groups, change device permissions manually, reset the TPM or enable a daemon.
+Do not use this version pin on another distribution without checking its packages.
+
+Capture running-container state and available healthchecks, plus failed systemd
+units, before installation, immediately after it, and after diagnostics. Stop if
+health regresses. These snapshots do not replace application end-to-end tests.
+Repeat the configuration apply: no managed-host changes should be required.
+
+Run the binary as the ordinary lab user, with an external timeout, redirecting
+stdout using `umask 077`. Run a separate privileged comparison only when explicitly
+authorized. Label files `inventory-ordinary.json` and `inventory-privileged.json`;
+never replace the ordinary result with the privileged one. Validate each with
+`scripts/validate_inventory.py` on the development machine.
+
+The separate authorized TPM diagnostics use the documented resource-manager TCTI:
+
+```bash
+sudo timeout 20 tpm2_getcap -T device:/dev/tpmrm0 pcrs
+sudo timeout 20 tpm2_getcap -T device:/dev/tpmrm0 algorithms
+sudo timeout 20 tpm2_pcrread -T device:/dev/tpmrm0 sha256:0,2,4,7,10
+```
+
+References: [capability query](https://tpm2-tools.readthedocs.io/en/latest/man/tpm2_getcap.1/)
+and [PCR read](https://tpm2-tools.readthedocs.io/en/latest/man/tpm2_pcrread.1/).
+Keep outputs private. A successful command is a collected observation, not an
+independent signature/provenance check. The inventory's `commandAccess` remains
+`not-tested` because these commands run outside the agent.
+
+Inspect only a bounded, filtered kernel journal for TPM/IMA/Lockdown warnings.
+Do not collect full event logs or read EK/AK material in this phase. No reboot,
+firmware change, IMA policy change or enrollment is needed for this procedure.
+Rollback removes only the newly deployed laboratory artifact and manifest;
+package removal must first account for dependencies and any shared use.

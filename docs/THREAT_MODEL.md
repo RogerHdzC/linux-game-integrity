@@ -1,6 +1,6 @@
 # Threat model — experimental inventory and future attestation
 
-Version 0.1, 2026-10-25. Scope: independent lab; no interaction with Riot services,
+Version 0.2, 2026-10-26. Scope: independent lab; no interaction with Riot services,
 Vanguard or game processes. The current implementation collects observations;
 it does not establish a trusted platform or prevent cheating.
 
@@ -63,9 +63,25 @@ has no authenticated binding to a device or execution.
 
 For ordinary inventory operation, the kernel and standard system interfaces are
 assumed to function and return finite reads. This is an operational assumption,
-not a security conclusion. The lab owner authorizes local observation only.
+not a security conclusion. The lab owner authorizes scoped tooling installation and separate privileged
+diagnostics. This does not change the agent privilege model.
 
 Phase acceptance requires real Linux output, valid schema, negative tests,
 explicit missing capabilities, no automatic elevation, and documented limitations.
 Hardware-backed acceptance is not available. Independent review is still needed
 before relying on future security claims.
+
+## Phase 2 laboratory risks
+
+The optional external diagnostic procedure uses privileged TPM reads; its results
+still depend on the host kernel and tooling. Package installation can introduce
+udev rules and dependencies: record package versions and device access modes,
+without broadening access manually or adding users to TPM groups. Preserve
+service-health baselines and stop on regression.
+
+An unreadable IMA policy leaves coverage unknown even when logs are readable and
+violation counters are zero. TPM firmware warnings require command-specific
+validation; successful capability/PCR reads do not demonstrate quote reliability.
+The separate draft result schema is not an authorization boundary by itself.
+See [enrollment design](ENROLLMENT_DESIGN.md) for the proposed controls for R2,
+R3, R6 and R7; none are implemented as server protections yet.

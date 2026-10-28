@@ -110,6 +110,54 @@ fn denied_interfaces_preserve_error_and_other_observations() {
 }
 
 #[test]
+fn denied_ima_policy_does_not_hide_readable_logs_or_claim_coverage() {
+    let mut f = fixture();
+    f.denied.push("/sys/kernel/security/ima/policy".into());
+    let r = collect(&f);
+    let interfaces = &r.platform.measurement_interfaces;
+    let policy = interfaces
+        .iter()
+        .find(|o| o.source.ends_with("/policy"))
+        .unwrap();
+    assert_eq!(policy.error, Some(ReadError::PermissionDenied));
+    assert_eq!(policy.value, None);
+    let log = interfaces
+        .iter()
+        .find(|o| o.source.ends_with("/ascii_runtime_measurements"))
+        .unwrap();
+    assert_eq!(log.value, Some(true));
+    assert!(!r.evidence.measurements_collected);
+    assert!(!r.evidence.cryptographically_backed);
+    assert_eq!(r.result, "INDETERMINATE");
+}
+
+#[test]
+fn missing_boot_log_and_malformed_tpm_version_remain_unknown() {
+    let mut f = fixture();
+    f.files
+        .remove("/sys/kernel/security/tpm0/binary_bios_measurements");
+    f.files.insert(
+        "/sys/class/tpm/tpm0/tpm_version_major".into(),
+        "unknown".into(),
+    );
+    let r = collect(&f);
+    let log = r
+        .platform
+        .measurement_interfaces
+        .iter()
+        .find(|o| o.source.ends_with("/binary_bios_measurements"))
+        .unwrap();
+    assert_eq!(log.status, "unavailable");
+    assert_eq!(log.value, None);
+    assert_eq!(
+        r.platform.tpm.major_versions[0].error,
+        Some(ReadError::InvalidData)
+    );
+    assert_eq!(r.platform.tpm.command_access, "not-tested");
+    assert_eq!(r.result, "INDETERMINATE");
+}
+
+#[test]
 fn distro_falls_back_only_when_primary_file_is_missing() {
     let mut f = fixture();
     f.files.remove("/etc/os-release");

@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rogerhdzc.github.io/linux-game-integrity/contracts/verification-result-draft.schema.json",
+  "title": "verification-result-draft",
+  "description": "Phase 2 design draft. Schema validation does not verify cryptographic evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "origin",
+    "evaluationId",
+    "challengeId",
+    "policyVersion",
+    "result",
+    "checks",
+    "reasons"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1-draft"
+    },
+    "kind": {
+      "const": "verification-result"
+    },
+    "origin": {
+      "enum": [
+        "live",
+        "synthetic"
+      ]
+    },
+    "evaluationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+    },
+    "challengeId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+    },
+    "policyVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "result": {
+      "enum": [
+        "ACCEPTED",
+        "REJECTED",
+        "INDETERMINATE"
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "keyProvenance",
+        "signature",
+        "freshness",
+        "measurements",
+        "policy"
+      ],
+      "properties": {
+        "keyProvenance": {
+          "enum": [
+            "VERIFIED",
+            "FAILED",
+            "UNAVAILABLE",
+            "NOT_CHECKED"
+          ]
+        },
+        "signature": {
+          "enum": [
+            "VERIFIED",
+            "FAILED",
+            "UNAVAILABLE",
+            "NOT_CHECKED"
+          ]
+        },
+        "freshness": {
+          "enum": [
+            "VERIFIED",
+            "FAILED",
+            "UNAVAILABLE",
+            "NOT_CHECKED"
+          ]
+        },
+        "measurements": {
+          "enum": [
+            "VERIFIED",
+            "FAILED",
+            "UNAVAILABLE",
+            "NOT_CHECKED"
+          ]
+        },
+        "policy": {
+          "enum": [
+            "VERIFIED",
+            "FAILED",
+            "UNAVAILABLE",
+            "NOT_CHECKED"
+          ]
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "ACCEPTED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "checks": {
+            "properties": {
+              "keyProvenance": {
+                "const": "VERIFIED"
+              },
+              "signature": {
+                "const": "VERIFIED"
+              },
+              "freshness": {
+                "const": "VERIFIED"
+              },
+              "measurements": {
+                "const": "VERIFIED"
+              },
+              "policy": {
+                "const": "VERIFIED"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "checks": {
+            "anyOf": [
+              {
+                "properties": {
+                  "keyProvenance": {
+                    "const": "FAILED"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "signature": {
+                    "const": "FAILED"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "freshness": {
+                    "const": "FAILED"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "measurements": {
+                    "const": "FAILED"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "policy": {
+                    "const": "FAILED"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "result": {
+            "const": "REJECTED"
+          }
+        }
+      }
+    }
+  ]
+}

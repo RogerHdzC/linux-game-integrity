@@ -69,3 +69,16 @@ format. A future phase will define separate request and server-result contracts.
 The server must independently verify signatures, AK provenance, nonce, PCRs and
 policy. Neither this schema nor its validator implements those checks. An
 attacker can still produce schema-valid JSON containing false observations.
+
+## Phase 2 design drafts
+
+The separate `evidence-submission-draft.schema.json` and
+`verification-result-draft.schema.json` use version `0.1-draft`. They do not
+change inventory-v1, add an endpoint or implement cryptographic verification.
+The request rejects client-provided decisions. The result describes a future
+server response and requires all checks VERIFIED for ACCEPTED.
+
+See [enrollment and protocol design](../../docs/ENROLLMENT_DESIGN.md) for field
+encodings, bounds, trust boundaries and unimplemented semantic checks. Fixtures
+are synthetic; even a schema-valid quote may contain meaningless bytes. Do not
+use schema validation as an attestation verifier.

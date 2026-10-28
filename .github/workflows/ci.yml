@@ -36,6 +36,16 @@ jobs:
           mkdir -p reports
           target/debug/lgi-agent > reports/inventory-ci.json
           python scripts/validate_inventory.py reports/inventory-ci.json
+      - name: Portable laboratory build and contract checks
+        run: |
+          rustup target add x86_64-unknown-linux-musl --toolchain 1.84.1
+          cargo build --release --locked --target x86_64-unknown-linux-musl
+          readelf -l target/x86_64-unknown-linux-musl/release/lgi-agent > reports/agent-program-headers.txt
+          if grep -q INTERP reports/agent-program-headers.txt; then
+            echo "Portable artifact unexpectedly requires a dynamic interpreter"
+            exit 1
+          fi
+          LGI_AGENT_BIN=target/x86_64-unknown-linux-musl/release/lgi-agent python -m unittest discover -s tests/contracts -v
       - name: Rust and Python dependencies (OSV)
         run: python scripts/audit_dependencies.py
   secrets:

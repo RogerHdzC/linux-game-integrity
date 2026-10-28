@@ -5,7 +5,7 @@
 | Level | Meaning | Current implementation |
 |---|---|---|
 | OS-declared | A local interface returned a value | Implemented, unverified |
-| Collected measurements | Actual PCR values or event-log entries collected with context | Not implemented; readability probes are not measurements |
+| Collected measurements | Actual PCR values or event-log entries collected with context | Agent: probes only. Separate Phase 2 lab: selected PCR reads |
 | Cryptographically backed | Evidence signed under a defined key and format | Not implemented |
 | Server verified | Independent checks of signature, provenance, freshness and measurement consistency | Not implemented |
 | Security conclusion | Policy-specific claim within explicit assumptions | No acceptance decision or cheat-free conclusion |
@@ -31,8 +31,8 @@ not a proof that the kernel has never been compromised. See the
 
 A sysfs class entry, version string or device node does not establish TPM command
 access, manufacturer provenance, key enrollment or trust in the caller. TPM 1.2
-is recorded distinctly from TPM 2.0. No commands, PCR reads, keys or quotes are
-used in this iteration.
+is recorded distinctly from TPM 2.0. The agent issues no TPM commands. Separate
+Phase 2 laboratory diagnostics read capabilities and selected PCRs; no keys or quotes are created.
 
 A future quote may bind selected PCR state to a challenge under an attestation
 key. Checking the signature, qualifying data and PCR digest still requires a
@@ -61,9 +61,9 @@ A virtual TPM can support protocol experiments but does not establish a physical
 root of trust independent of its host. Host-controlled snapshots and rollback
 need explicit treatment. `environmentHint: unknown` does not establish bare metal.
 
-Only the listed WSL environment has been tested live. Ubuntu bare metal, Fedora,
-other kernels/architectures and physical TPM behavior remain unvalidated. The
-fixed boot-log probe currently targets TPM0; nonzero TPMs are enumerated for
+The listed WSL and native Debian environments have been tested live. Ubuntu
+bare metal, Fedora, other kernels/architectures and physical TPM quote behavior
+remain unvalidated. The fixed boot-log probe currently targets TPM0; nonzero TPMs are enumerated for
 version/node observations but their boot logs are not dynamically discovered.
 
 ## Operational limits

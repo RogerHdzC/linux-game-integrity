@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "0.1-draft",
+  "kind": "verification-result",
+  "origin": "synthetic",
+  "evaluationId": "synthetic-evaluation",
+  "challengeId": "synthetic-challenge",
+  "policyVersion": "synthetic-policy-v1",
+  "result": "INDETERMINATE",
+  "checks": {
+    "keyProvenance": "NOT_CHECKED",
+    "signature": "NOT_CHECKED",
+    "freshness": "NOT_CHECKED",
+    "measurements": "NOT_CHECKED",
+    "policy": "NOT_CHECKED"
+  },
+  "reasons": [
+    "EVIDENCE_MISSING"
+  ]
+}

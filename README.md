@@ -5,9 +5,10 @@ and what those guarantees would mean for competitive gaming. The long-term aim
 is to contribute technical evidence toward potential Riot Vanguard support on
 Linux and League of Legends compatibility across distributions.
 
-**Status: first iteration, Phases 0 and 1.** This repository contains a read-only
-Rust inventory agent, a JSON contract, automated tests and a threat model. It does
-not make League of Legends run on Linux, integrate with Vanguard, or verify
+**Status: Phase 2, native Debian laboratory validation and contract design.**
+This repository contains a read-only Rust inventory agent, a stable inventory
+JSON contract, separate draft evidence/result contracts, automated tests and a
+threat model. It does not make League of Legends run on Linux, integrate with Vanguard, or verify
 attestations. This is an independent project, without affiliation with or approval
 from Riot Games.
 
@@ -97,8 +98,10 @@ docs/                              Threat model, design, limits and results
 - [Lab requirements](docs/LAB.md), [roadmap](docs/ROADMAP.md)
   and [technical references](docs/REFERENCES.md).
 
-WSL2 is sufficient for development in this phase. Firmware, boot-chain and
-physical TPM validation will require a separate native Linux lab machine.
+WSL2 remains suitable for development. A native Debian laboratory now supports
+firmware-interface and TPM command checks; Ubuntu/Fedora native coverage remains
+pending. See [Phase 2 results](docs/RESULTS_PHASE_2.md) and the
+[enrollment design](docs/ENROLLMENT_DESIGN.md).
 Inventory and attestation research do not require a graphical desktop. Missing
 interfaces in WSL do not establish the Windows host's firmware or TPM state.
 
@@ -115,4 +118,4 @@ Contributions use the same license. It does not grant rights to Riot software
 or trademarks, or imply Riot's acceptance.
 
 Remote attestation, NestJS, PostgreSQL and policy enforcement remain future work
-**after review of this iteration**.
+**after review of this iteration**. Phase 2 does not implement enrollment or quotes.

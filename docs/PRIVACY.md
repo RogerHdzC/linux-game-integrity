@@ -36,3 +36,14 @@ access controls, audit minimization and an enrollment strategy that avoids
 unnecessary permanent device identifiers. EK certificates and persistent AKs can
 link sessions; raw measurement logs may reveal file paths and installed software.
 No server retention policy or privacy guarantee is implemented in this phase.
+
+## Phase 2 laboratory handling
+
+The separate privileged diagnostics collect selected PCR values and bounded
+TPM-related kernel messages into private controller reports, never public CI
+artifacts. Report directories use mode 0700 and files 0600. Keep execution
+privilege labels separate from the stable inventory contract. Raw reports can
+contain infrastructure details and must not be committed or attached to issues.
+Delete them when review no longer needs them; no automatic purge is installed.
+Publish only reviewed capability summaries. The proposed future enrollment and
+server retention defaults are in [ENROLLMENT_DESIGN.md](ENROLLMENT_DESIGN.md).

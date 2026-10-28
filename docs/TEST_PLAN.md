@@ -45,3 +45,19 @@ These require a designed protocol, server and, for hardware claims, the native
 lab. No synthetic cryptographic fixture has been presented as a real quote.
 Latency/resource benchmarks, physical TPM/IMA validation, Fedora testing and
 independent security review remain pending.
+
+## Phase 2 validation (2026-10-26/27)
+
+Rust now has 6 unit and 12 integration tests: the two added synthetic cases cover
+an unreadable IMA policy alongside readable logs, and a missing boot log alongside
+a malformed TPM version. Python now has 22 tests, including 9 draft-schema tests
+for synthetic labeling, client/server separation, missing fields, versions,
+nonce/binary encoding and bounds, PCR limits, and acceptance/failure consistency.
+Trailing newlines in hex inputs are rejected. All passed in the local run.
+
+The portable musl artifact passed local contract tests. Both native Debian reports
+(ordinary and explicitly privileged execution) passed inventory-v1 validation.
+Ansible reapplication reported zero host changes; service snapshots matched.
+TPM capability and selected PCR-read commands succeeded. These hardware reads do
+not fulfill the future signature, replay, nonce, enrollment or policy tests above.
+See [Phase 2 results](RESULTS_PHASE_2.md) for exact observations and limits.

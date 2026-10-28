@@ -12,8 +12,11 @@ attestation or universal distribution support can be completed in that period.
 | 4 / week 7 | Adversarial protocol tests and independent security review | Invalid/replayed/inconsistent/expired evidence never accepted; documented residual risks |
 | 5 / week 8 | Reproducibility, latency/resource measurements, feasibility report and external proposal | Recorded real and synthetic results, no unsupported compatibility claims |
 
-Current delivered scope is Phases 0/1 only. Review is required before implementing
-remote attestation. A functional fixture-only verifier would not complete Phase 3.
+Phases 0/1 are delivered. Phase 2 adds native Debian validation and draft
+submission/result contracts plus enrollment/privacy design. Native Ubuntu/Fedora
+coverage and independent design review remain pending; Phase 2 is partial.
+Review is required before implementing remote attestation. A functional
+fixture-only verifier would not complete Phase 3.
 
 Dependencies: native Linux lab; accessible TPM 2.0; verified TSS tooling/library
 versions; supported PCR banks and log templates; attestation-key enrollment and
