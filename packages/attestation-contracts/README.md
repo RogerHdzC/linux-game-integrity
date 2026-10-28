@@ -62,10 +62,11 @@ Content reads are capped at 1 MiB and reject oversized data instead of silently
 truncating it. Sysfs enumeration is limited to 4096 entries. There is no hard
 read deadline against a kernel that stalls an operation.
 
-## Separation from the future verifier
+## Separation from the implemented verifier
 
 The client cannot submit `quoteVerified`, `nonceVerified` or `ACCEPTED` in this
-format. A future phase will define separate request and server-result contracts.
+format. The implemented HTTP v1 uses separate request validation and server-result types;
+see [protocol v1](../../docs/PROTOCOL_V1.md). The drafts below are historical designs.
 The server must independently verify signatures, AK provenance, nonce, PCRs and
 policy. Neither this schema nor its validator implements those checks. An
 attacker can still produce schema-valid JSON containing false observations.

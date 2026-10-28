@@ -1,4 +1,47 @@
-# Roadmap and review gates
+# Implementation roadmap: attestation and Linux kernel observation
+
+This continuation roadmap supersedes the original scheduling and restarts phase
+numbering. Earlier results remain historical evidence, not completion of the new
+enrollment, reconstruction or trusted-policy phases. Only consolidation Phase 1
+is implemented in this iteration. The original eight-week estimate is deferred
+until laboratory preparation and provenance research establish realistic scope.
+
+## Delivery rules
+
+Commit and push small, reviewable increments after relevant local checks. Check
+GitHub Actions after every push and fix failures before dependent work. Each
+functional change includes regression tests and documentation. Review public diffs
+for secrets and infrastructure information; raw evidence and host-specific Ansible
+remain private. Record implemented, tested and pending work at each boundary.
+
+## Phases and gates
+
+| Phase | Scope | Completion gate / current status |
+|---|---|---|
+| 1 — Consolidate | Review verifier, contracts, transactions and TPM decoder; correct findings, expand negative tests, document dependencies | Implemented and locally tested; publication/CI evidence in the consolidation report |
+| 2 — Isolated laboratories | Prepare the dedicated disposable Ubuntu 24.04 LTS physical machine, baseline, exact versions and console/reinstallation recovery | Pending; recoverable laboratory with explicit physical/virtual evidence classification |
+| 3 — Key provenance | Reviewed versioned EK trust store, certificates, credential activation, rotation and revocation | Pending; real enrollment and substitution/activation negatives; unsupported evidence stays UNPROVEN |
+| 4 — Boot/IMA reconstruction | Bounded parsers, PCR reconstruction, consistency and collection-race handling; inspectable IMA policy without initial appraisal enforcement | Pending; real reconstruction and tampering tests, with separate coverage/content approval |
+| 5 — Trust policies | Immutable reviewed baselines, revocation, legitimate updates and recovery | Pending; real acceptance only with every mandatory check, with precise limited claims |
+| 6 — eBPF observation | Dedicated test workload/cgroup, privileged loader separated from agent, bounded events and explicit losses; no content, arguments or personal paths | Pending; expected events, detectable losses, overhead/privacy review and disposable-machine validation |
+| 7 — Custom module decision | Compare demonstrated gaps against eBPF/LSM and existing interfaces; independent review | Pending; retain eBPF if no justified gap; otherwise separately approve minimal observation-only module, private signing keys and recovery tests |
+| 8 — Compatibility/hardening | Native Ubuntu/Fedora, per-client authentication, admin authorization, TLS, limits, migration/backup/retention recovery | Pending; explicit supported configurations and operational boundaries before external access |
+| 9 — Adversarial review | Replay/revocation races, malformed evidence, sensor failure/saturation/lifecycle, repeatable performance and independent security review | Pending; material findings resolved or block release, residual risks explicit |
+| 10 — Research MVP | Reproducible setup, evidence matrix, feasibility report and reviewed release | Pending; another engineer can reproduce the supported experiments and their limits |
+
+The user's dedicated disposable Ubuntu machine replaces the earlier mandatory VM
+proposal. A VM is optional, and virtual evidence never establishes physical TPM
+trust. Phase 2 must establish console access and tested recovery before future
+kernel experiments. Existing shared laboratory machines remain limited to already
+reviewed operations. No provisioning or host operation was performed in Phase 1.
+
+A custom `.ko` is a conditional research decision, not an approved implementation.
+No sensor, module or accepted experimental policy would imply cheat absence or
+Vanguard compatibility. Existing firmware keys, TPM ownership and unrelated keys
+must be preserved. Missing hardware/reviews remain open gates, never synthetic
+substitutes. Future persistent infrastructure changes belong in private Ansible.
+
+## Historical plan (retained for interpreting prior reports)
 
 The original eight-week outline is an estimate, not a commitment that hardware
 attestation or universal distribution support can be completed in that period.

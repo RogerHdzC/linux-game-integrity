@@ -65,7 +65,7 @@ particular experimental policy, never proof of cheat absence or Vanguard support
 |---|---|---|
 | ADR-001 | Rust for read-only inventory; serde and serde_json only runtime dependencies | Typed output and well-tested JSON escaping without shell commands |
 | ADR-002 | Strict JSON Schema 2020-12; Python jsonschema for tests | Independent contract validation; Python not required by agent |
-| ADR-003 | No verifier, PostgreSQL, Compose or dashboard in this iteration | Phases 0–2 retain a review gate before remote attestation |
+| ADR-003 (historical) | Original inventory iteration omitted verifier, PostgreSQL, Compose and dashboard | Superseded for the authorized verifier subset by ADR-009 through ADR-012 |
 | ADR-004 | Do not open TPM devices or read complete event logs | Avoid unnecessary privileges/device commands and sensitive log collection |
 | ADR-005 | All inventory is unverified; local result constant | No unsupported trust claims from boolean observations |
 | ADR-006 | GitHub Actions with pinned action commits | Matches the public GitHub repository; no deployment needed |
@@ -108,3 +108,11 @@ without persistent enrollment; it is always registered as UNPROVEN.
 
 The executable route contract supersedes the historical draft for this limited
 protocol; see [verifier documentation](../apps/verifier-api/README.md).
+
+## Consolidation Phase 1
+
+The [implemented protocol](PROTOCOL_V1.md) separates executable HTTP v1 from the
+historical draft. Typed responses and HTTP tests preserve that boundary. Policy
+acceptance requires all six mandatory checks; nonce/PCR comparisons are only
+VERIFIED after signature verification. Startup requires the migration row and
+cleans up resources on failure. See [results](RESULTS_CONSOLIDATION_PHASE_1.md).

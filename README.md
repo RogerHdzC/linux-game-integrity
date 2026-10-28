@@ -5,7 +5,11 @@ and what those guarantees would mean for competitive gaming. The long-term aim
 is to contribute technical evidence toward potential Riot Vanguard support on
 Linux and League of Legends compatibility across distributions.
 
-**Status: Phase 3 in progress — local verifier tested with a real TPM quote.**
+**Status: consolidation Phase 1 implemented — limited quote verification remains experimental.**
+The [current roadmap](docs/ROADMAP.md) restarts phase numbering; historical
+Phases 0–3 reports describe earlier work. See the
+[consolidation results](docs/RESULTS_CONSOLIDATION_PHASE_1.md) and
+[implemented HTTP v1 protocol](docs/PROTOCOL_V1.md).
 This repository contains a read-only Rust inventory agent, a stable inventory
 JSON contract, separate draft evidence/result contracts, automated tests and a
 threat model. The local NestJS/PostgreSQL verifier checks quote signatures, nonces

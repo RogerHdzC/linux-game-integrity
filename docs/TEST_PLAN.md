@@ -75,3 +75,19 @@ challenge binding were rejected. Real signature/PCR mutations failed checks.
 These results do not complete the full future table: provenance, real event-log
 reconstruction, baselines/legitimate updates, external TLS/multi-user deployment
 and independent review remain pending. See RESULTS_PHASE_3.md.
+
+## Consolidation Phase 1 (2026-10-28)
+
+25 Jest tests passed with real local PostgreSQL 16.15 and synthetic quote inputs.
+The suite creates and drops a separate random schema per run; repeated runs passed.
+Added coverage includes incomplete/inherited/extra policy fields, response shapes,
+client result injection, unauthenticated nonce/PCR claims, all synthetic structure
+truncation points, unsupported algorithms/selections/lengths, malformed UTF-8,
+concurrent issuance limits, revocation during final locking, migration-row startup
+failure and lifecycle cleanup. Existing replay, retention, migration rollback and
+post-reservation storage-failure tests remain passing.
+
+18 Rust tests and 22 Python contract/audit tests passed. rustfmt, Clippy, strict
+TypeScript build and Prettier passed. No new hardware evidence was collected.
+See [consolidation results](RESULTS_CONSOLIDATION_PHASE_1.md) for commands, CI and
+unresolved dependencies. Historical test counts above are not current totals.

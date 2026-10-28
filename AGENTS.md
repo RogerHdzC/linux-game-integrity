@@ -2,8 +2,12 @@
 
 - Use English for documentation, comments, CLI messages and communication.
 - Work incrementally; read README and docs before changing architecture.
-- Phases 0 and 1 cover read-only local inventory. Do not start remote attestation
-  until the user has reviewed this iteration.
+- Follow the current phase boundary in docs/ROADMAP.md. Historical Phases 0–3
+  reports use the earlier numbering. The current authorized increment is
+  consolidation Phase 1; later laboratory, enrollment and kernel work requires
+  its own authorization.
+- Commit and push reviewable increments after relevant checks and public-data
+  review; check GitHub Actions before proceeding with dependent changes.
 - Do not modify, disable, intercept or bypass Vanguard; do not inject into or
   manipulate game processes. Use an independent lab.
 - Do not change host firmware, Secure Boot, modules, TPM, mounts or policies.
