@@ -15,8 +15,10 @@ attestation or universal distribution support can be completed in that period.
 Phases 0/1 are delivered. Phase 2 adds native Debian validation and draft
 submission/result contracts plus enrollment/privacy design. Native Ubuntu/Fedora
 coverage and independent design review remain pending; Phase 2 is partial.
-Review is required before implementing remote attestation. A functional
-fixture-only verifier would not complete Phase 3.
+The user authorized Phase 3. A local NestJS/PostgreSQL verifier now verifies real
+quote signatures, signed nonces and PCR digest consistency; one-use challenges
+and revocation are tested. Provenance, log reconstruction and trusted baselines
+remain missing, so Phase 3 is partial. See RESULTS_PHASE_3.md.
 
 Dependencies: native Linux lab; accessible TPM 2.0; verified TSS tooling/library
 versions; supported PCR banks and log templates; attestation-key enrollment and

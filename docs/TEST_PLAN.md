@@ -24,7 +24,7 @@ no write APIs, subprocesses, network calls, mount changes or TPM commands in the
 agent. A syscall trace or independently reviewed sandbox profile has not been
 produced, and hostile-kernel behavior is not tested.
 
-## Future protocol and hardware gates — not executed
+## Protocol and hardware acceptance targets
 
 | Scenario | Required future result |
 |---|---|
@@ -41,8 +41,8 @@ produced, and hostile-kernel behavior is not tested.
 | Migration failure or persistence outage | No acceptance; maintain state consistency |
 | Audit records | No secrets or unnecessary permanent identifiers |
 
-These require a designed protocol, server and, for hardware claims, the native
-lab. No synthetic cryptographic fixture has been presented as a real quote.
+The Phase 3 executed subset below updates these original targets; unlisted
+acceptance gates remain pending. Hardware claims require the native lab. No synthetic cryptographic fixture has been presented as a real quote.
 Latency/resource benchmarks, physical TPM/IMA validation, Fedora testing and
 independent security review remain pending.
 
@@ -61,3 +61,17 @@ Ansible reapplication reported zero host changes; service snapshots matched.
 TPM capability and selected PCR-read commands succeeded. These hardware reads do
 not fulfill the future signature, replay, nonce, enrollment or policy tests above.
 See [Phase 2 results](RESULTS_PHASE_2.md) for exact observations and limits.
+
+## Phase 3 executed subset
+
+15 Jest tests passed against isolated PostgreSQL 16.15. They cover API access,
+input limits/duplicate keys, migration transaction rollback, nonce expiry/replay,
+eight concurrent submissions, revocation, restart persistence, missing evidence,
+storage failure before and after reservation, retention, synthetic signature/PCR
+negatives and policy nonacceptance with missing checks. Separately, real hardware
+quote signature, signed nonce and PCR digest were verified; replay and stale
+challenge binding were rejected. Real signature/PCR mutations failed checks.
+
+These results do not complete the full future table: provenance, real event-log
+reconstruction, baselines/legitimate updates, external TLS/multi-user deployment
+and independent review remain pending. See RESULTS_PHASE_3.md.

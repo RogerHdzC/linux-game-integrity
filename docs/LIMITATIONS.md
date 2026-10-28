@@ -6,8 +6,8 @@
 |---|---|---|
 | OS-declared | A local interface returned a value | Implemented, unverified |
 | Collected measurements | Actual PCR values or event-log entries collected with context | Agent: probes only. Separate Phase 2 lab: selected PCR reads |
-| Cryptographically backed | Evidence signed under a defined key and format | Not implemented |
-| Server verified | Independent checks of signature, provenance, freshness and measurement consistency | Not implemented |
+| Cryptographically backed | Evidence signed under a defined key and format | Phase 3 real TPM quote, signing-key provenance unproven |
+| Server verified | Independent checks of signature, provenance, freshness and measurement consistency | Signature, signed nonce and PCR digest checked; provenance and log reconstruction missing |
 | Security conclusion | Policy-specific claim within explicit assumptions | No acceptance decision or cheat-free conclusion |
 
 A schema-valid report is not cryptographic evidence. A hostile client can produce
@@ -32,7 +32,8 @@ not a proof that the kernel has never been compromised. See the
 A sysfs class entry, version string or device node does not establish TPM command
 access, manufacturer provenance, key enrollment or trust in the caller. TPM 1.2
 is recorded distinctly from TPM 2.0. The agent issues no TPM commands. Separate
-Phase 2 laboratory diagnostics read capabilities and selected PCRs; no keys or quotes are created.
+Phase 2 laboratory diagnostics read capabilities and selected PCRs. Phase 3 separately tests a temporary NULL-hierarchy
+signing key and real quote; it does not establish hardware provenance.
 
 A future quote may bind selected PCR state to a challenge under an attestation
 key. Checking the signature, qualifying data and PCR digest still requires a
@@ -73,5 +74,7 @@ stall them. File-type checks do not prevent a privileged actor from racing path
 resolution. UTF-8 and conservative field parsing can reject unusual declarations;
 errors remain explicit rather than becoming secure defaults.
 
-No remote protocol, replay protection, API authorization, database, migrations,
-cryptographic verification, policy engine or game integration exists yet.
+Phase 3 implements a limited local API with replay protection, lab authorization,
+PostgreSQL migrations, quote signature/nonce/PCR digest verification and a
+conservative policy engine. Hardware provenance, IMA/boot-log reconstruction,
+trusted baselines and game integration remain unimplemented.

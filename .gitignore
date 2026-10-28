@@ -9,3 +9,5 @@ __pycache__/
 /.agents/
 /.aws/
 /.codex/
+/node_modules/
+/dist/

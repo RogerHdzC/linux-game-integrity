@@ -35,7 +35,8 @@ Before adding a server, define consent, authentication, retention/deletion,
 access controls, audit minimization and an enrollment strategy that avoids
 unnecessary permanent device identifiers. EK certificates and persistent AKs can
 link sessions; raw measurement logs may reveal file paths and installed software.
-No server retention policy or privacy guarantee is implemented in this phase.
+Phase 3 implements laboratory retention as described below; a complete privacy
+guarantee and externally reviewed enrollment design remain unestablished.
 
 ## Phase 2 laboratory handling
 
@@ -47,3 +48,19 @@ contain infrastructure details and must not be committed or attached to issues.
 Delete them when review no longer needs them; no automatic purge is installed.
 Publish only reviewed capability summaries. The proposed future enrollment and
 server retention defaults are in [ENROLLMENT_DESIGN.md](ENROLLMENT_DESIGN.md).
+
+## Phase 3 local service
+
+The API persists unproven public keys, opaque enrollment/challenge/evaluation IDs,
+nonces, timestamps, policy versions and check/reason codes. It does not persist
+raw quotes, PCR values or incoming request bodies. The single client uses a
+shared laboratory credential; this is not anonymous or multi-user operation.
+Startup/hourly cleanup deletes old evaluations and expired challenge state after
+30 days, then revoked enrollments after 30 days when references are gone.
+Active public keys remain until revocation; keys can correlate sessions.
+
+Native experiments retain real quote/public-key reports only in private local
+storage. Temporary context files are removed after collection through scoped
+Ansible cleanup. Source-control exclusion does not encrypt files; restrict access
+and remove reports when no longer needed. See the verifier README for setup,
+retention ordering and access limitations.

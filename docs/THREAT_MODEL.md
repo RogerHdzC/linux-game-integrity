@@ -1,6 +1,6 @@
 # Threat model — experimental inventory and future attestation
 
-Version 0.2, 2026-10-26. Scope: independent lab; no interaction with Riot services,
+Version 0.3, 2026-10-27. Scope: independent lab; no interaction with Riot services,
 Vanguard or game processes. The current implementation collects observations;
 it does not establish a trusted platform or prevent cheating.
 
@@ -8,7 +8,8 @@ it does not establish a trusted platform or prevent cheating.
 
 Assets: accurate interpretation of evidence, future signing keys and challenge
 state, versioned policy, reproducible source/builds, lab availability and device
-privacy. The user's files, firmware and TPM state must remain untouched.
+privacy. The user's files, firmware, TPM ownership and unrelated keys must remain
+untouched. Phase 3 explicitly permits isolated temporary laboratory signing keys.
 
 Boundaries: firmware/hardware → kernel → userspace agent → JSON consumer. Future
 boundaries add transport → verifier → policy/database. All data crossing from a
@@ -85,3 +86,15 @@ validation; successful capability/PCR reads do not demonstrate quote reliability
 The separate draft result schema is not an authorization boundary by itself.
 See [enrollment design](ENROLLMENT_DESIGN.md) for the proposed controls for R2,
 R3, R6 and R7; none are implemented as server protections yet.
+
+## Phase 3 trust boundaries and residual risks
+
+The local HTTP client is untrusted even with a valid lab token. Registration is
+admin-only, and keys are always UNPROVEN. Actual signature verification proves
+possession relative to the registered public key; it does not prove that key's
+hardware origin. No live ACCEPTED path exists while that gap remains.
+Atomic database reservation, expiry and signed nonce comparison mitigate replay;
+relay/cuckoo attacks and post-quote state changes remain unresolved. Single-client
+bearer authentication, loopback binding and bounded input are laboratory controls,
+not readiness for an Internet-facing multi-user service. Parser review, broader
+resource limits, trusted baselines and log reconstruction remain necessary.

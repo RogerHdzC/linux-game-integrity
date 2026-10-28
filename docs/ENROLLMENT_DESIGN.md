@@ -1,7 +1,9 @@
 # Enrollment and evidence design — Phase 2 draft
 
-This is a design for review, not an implemented protocol or trust guarantee.
-No enrollment, attestation keys, challenge service or verifier exists yet.
+This is the historical Phase 2 design, not a trust guarantee. Phase 3 implements
+a limited protocol described in ../apps/verifier-api/README.md: unproven-key
+registration, one-use challenges and quote verification. Manufacturer-backed
+enrollment and credential activation remain unimplemented.
 The current inventory-v1 contract remains unchanged and unverified.
 
 ## Separate input from decisions

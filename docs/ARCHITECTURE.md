@@ -84,4 +84,27 @@ Infrastructure configuration and raw reports remain private.
 
 Separate draft submission/result schemas and the [enrollment design](ENROLLMENT_DESIGN.md)
 prepare Phase 3. Schema tests exercise shapes and decision consistency, not
-cryptographic verification. No runtime component can issue ACCEPTED.
+cryptographic verification. No deployed runtime path can issue ACCEPTED for live evidence.
+
+## Phase 3 implemented subset
+
+The local NestJS verifier uses strict route input validation, separate admin/client
+credentials and PostgreSQL persistence. An atomic conditional UPDATE consumes a
+challenge before quote processing; result persistence uses a separate transaction
+with a final locked revocation check. A failure cannot reopen a challenge.
+The server checks real TPMS_ATTEST signatures, signed qualifying data and PCR
+digest binding, then independently evaluates a versioned policy. It currently
+cannot accept any live platform because provenance, coverage and approved baseline
+checks remain unavailable. The sequence above still includes unimplemented
+provenance and event-log reconstruction steps.
+
+ADR-009: explicit parameterized SQL through pg instead of an ORM for the small
+state machine; real PostgreSQL concurrency tests verify reservation behavior.
+ADR-010: Node/OpenSSL verifies RSA signatures; bounded TPM decoding is isolated
+from HTTP/database logic and must receive independent security review.
+ADR-011: loopback-only single-client lab API; no automatic production deployment.
+ADR-012: NULL-hierarchy temporary signing key demonstrates real quote verification
+without persistent enrollment; it is always registered as UNPROVEN.
+
+The executable route contract supersedes the historical draft for this limited
+protocol; see [verifier documentation](../apps/verifier-api/README.md).

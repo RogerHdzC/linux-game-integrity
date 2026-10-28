@@ -1,0 +1,20 @@
+# Disposable LOCAL laboratory database; never connect this setup to production data.
+services:
+  postgres:
+    image: postgres:16.15-bookworm@sha256:cb20a02549a06de2f9b115b934f44ba43593e11663163e1f18d13facb4750de4
+    environment:
+      POSTGRES_DB: lgi_lab
+      POSTGRES_USER: lgi_lab
+      POSTGRES_PASSWORD: ${LGI_POSTGRES_PASSWORD:?Set a fresh laboratory database password}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - lgi_lab_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U lgi_lab -d lgi_lab"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    mem_limit: 512m
+volumes:
+  lgi_lab_data:

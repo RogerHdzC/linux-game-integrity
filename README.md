@@ -5,11 +5,13 @@ and what those guarantees would mean for competitive gaming. The long-term aim
 is to contribute technical evidence toward potential Riot Vanguard support on
 Linux and League of Legends compatibility across distributions.
 
-**Status: Phase 2, native Debian laboratory validation and contract design.**
+**Status: Phase 3 in progress — local verifier tested with a real TPM quote.**
 This repository contains a read-only Rust inventory agent, a stable inventory
 JSON contract, separate draft evidence/result contracts, automated tests and a
-threat model. It does not make League of Legends run on Linux, integrate with Vanguard, or verify
-attestations. This is an independent project, without affiliation with or approval
+threat model. The local NestJS/PostgreSQL verifier checks quote signatures, nonces
+and PCR digests, while hardware provenance and measurement coverage remain
+unverified. It does not make League of Legends run on Linux or integrate with
+Vanguard. This is an independent project, without affiliation with or approval
 from Riot Games.
 
 ## Implemented capabilities
@@ -22,7 +24,7 @@ from Riot Games.
 - Readability probes for IMA interfaces and the TPM0 boot event log.
 - JSON with explicit sources, unknown values and errors.
 
-All results are **OS-declared and unverified**. The local result is always
+All inventory results are **OS-declared and unverified**. The inventory result is always
 `INDETERMINATE`. A valid contract establishes JSON format, not authenticity.
 
 ## Requirements and installation
@@ -117,5 +119,7 @@ including an explicit contributor patent grant under the license's terms.
 Contributions use the same license. It does not grant rights to Riot software
 or trademarks, or imply Riot's acceptance.
 
-Remote attestation, NestJS, PostgreSQL and policy enforcement remain future work
-**after review of this iteration**. Phase 2 does not implement enrollment or quotes.
+See the [verifier setup and API](apps/verifier-api/README.md) and
+[Phase 3 results](docs/RESULTS_PHASE_3.md). Real quote verification is implemented,
+but valid quotes remain INDETERMINATE until provenance, measurement coverage and
+a reviewed baseline can be established. Phase 3 and the overall MVP remain partial.
