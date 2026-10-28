@@ -1,4 +1,4 @@
-# Experimental verifier — Phase 3
+# Experimental verifier — implemented HTTP v1
 
 A local NestJS API, PostgreSQL challenge state and bounded TPM quote verification.
 It is a laboratory service with **one client principal**. It is not deployed on
@@ -73,7 +73,9 @@ exactly five `{index, digest}` objects for SHA-256 indices 0,2,4,7,10, each dige
 32-byte lowercase hex; indices must be unique. Other banks, signatures, key sizes
 and selections are rejected explicitly. Real tpm2-tools 5.4 output was tested.
 The Phase 2 draft schemas remain historical designs, not these route contracts.
-This API uses equivalent strict runtime validation in `src/input.ts`.
+This API uses equivalent strict runtime validation in `src/input.ts`, typed
+server responses in `src/responses.ts`, and HTTP contract regression tests.
+See [implemented protocol](../../docs/PROTOCOL_V1.md) for the trust boundaries.
 
 Responses include schemaVersion, evaluationId, challengeId, policyVersion, result,
 checks and reason codes. HTTP 201 means a resource/result was created, **not** that
@@ -96,6 +98,8 @@ bytes. Node crypto verifies the exact signed bytes. The server compares signed
 qualifying data to its stored nonce and hashes supplied PCR values in selection
 order to check the quote's digest. Revocation is checked again under a database
 lock before persisting a result. Invalid signature/nonce/PCR binding rejects.
+When the signature fails, matching nonce/PCR bytes cannot become VERIFIED; their
+checks remain NOT_CHECKED (an already detected envelope nonce mismatch stays FAILED).
 
 There is **no production acceptance path**: key provenance, measurement coverage
 and the trusted baseline remain unavailable. A valid quote therefore returns

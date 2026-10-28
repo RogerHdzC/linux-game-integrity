@@ -217,3 +217,73 @@ test("migration failure rolls back all schema statements", async () => {
     isolated.release();
   }
 });
+
+test("invalid signatures cannot authenticate nonce or PCR comparisons", async () => {
+  const c = await challenge(),
+    body = submission(c);
+  body.quote.signature =
+    body.quote.signature.slice(0, -2) +
+    (body.quote.signature.endsWith("ff") ? "00" : "ff");
+  const r = await post("evaluations", body);
+  expect(r.status).toBe(201);
+  expect(r.body.result).toBe("REJECTED");
+  expect(r.body.checks).toMatchObject({
+    signature: "FAILED",
+    freshness: "NOT_CHECKED",
+    pcrBinding: "NOT_CHECKED",
+  });
+  expect(r.body.reasons).toContain("INVALID_SIGNATURE");
+});
+test("HTTP v1 response contracts are server-generated and distinct from drafts", async () => {
+  const c = await challenge();
+  expect(Object.keys(c).sort()).toEqual(
+    [
+      "schemaVersion",
+      "challengeId",
+      "nonce",
+      "policyVersion",
+      "pcrBank",
+      "pcrs",
+      "expiresAt",
+    ].sort(),
+  );
+  expect(c.schemaVersion).toBe(1);
+  expect(c.nonce).toMatch(/^[a-f0-9]{64}$/);
+  expect(c.pcrs).toEqual([0, 2, 4, 7, 10]);
+  expect(Number.isFinite(Date.parse(c.expiresAt))).toBe(true);
+  const body = submission(c);
+  for (const extra of [
+    { checks: { signature: "VERIFIED" } },
+    { keyProvenance: "TRUSTED" },
+    { result: "ACCEPTED" },
+  ])
+    expect((await post("evaluations", { ...body, ...extra })).status).toBe(400);
+  const r = await post("evaluations", body);
+  expect(Object.keys(r.body).sort()).toEqual(
+    [
+      "schemaVersion",
+      "evaluationId",
+      "challengeId",
+      "policyVersion",
+      "result",
+      "checks",
+      "reasons",
+    ].sort(),
+  );
+  expect(Object.keys(r.body.checks).sort()).toEqual(
+    [
+      "keyProvenance",
+      "signature",
+      "freshness",
+      "pcrBinding",
+      "measurements",
+      "policy",
+    ].sort(),
+  );
+  expect(r.body).toMatchObject({
+    schemaVersion: 1,
+    challengeId: c.challengeId,
+    policyVersion: c.policyVersion,
+    result: "INDETERMINATE",
+  });
+});
